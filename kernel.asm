@@ -1,6 +1,17 @@
 org 0x7e00
 jmp 0x0000:start
 
+pos1 db '1'
+pos2 db '2'
+pos3 db '3'
+pos4 db '4'
+pos5 db '5'
+pos6 db '6'
+pos7 db '7'
+pos8 db '8'
+pos9 db '9'
+
+
 abertura1 db 'Memoria Jogo', 0
 abertura2 db 'Jogo Da Memoria', 0
 abertura3 db 'J  o  a M m  i ', 0
@@ -138,8 +149,7 @@ movimentacao_menu:
 
 		mov cl, 1
 
-		jmp print_set
-	
+		jmp print_set	
 	print_set:
 		mov al, 'V'
 		mov ah, 0xe
@@ -287,6 +297,151 @@ guia_fun:
 
 		
 ret
+cards:
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 7
+	mov dl, 25
+	int 10h
+
+	mov al,'0'
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 7
+	mov dl, 37
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 7
+	mov dl, 49
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 12
+	mov dl, 25
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 12
+	mov dl, 37
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 12
+	mov dl, 49
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 17
+	mov dl, 25
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 17
+	mov dl, 37
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 17
+	mov dl, 49
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 22
+	mov dl, 25
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 22
+	mov dl, 37
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 22
+	mov dl, 49
+	int 10h
+
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 7
+	int 10h
+ret
+game:
+	mov ah, 0
+    mov al, 12h;"limpa" a tela e a transforma em branco
+    int 10h
+    mov ah, 0bh
+    mov bx, 12
+    int 10h
+    call cards ; cartas viradas
+
+
+ret
 start:
     xor ax, ax
     mov ds, ax
@@ -298,4 +453,5 @@ start:
     call guia_fun
     
 done:
+	call game
     jmp $
