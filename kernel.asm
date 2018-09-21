@@ -10,7 +10,11 @@ pos6 db '6'
 pos7 db '7'
 pos8 db '8'
 pos9 db '9'
-
+pos10 db '10'
+pos11 db '11'
+pos12 db '12'
+setaX db 7
+setaY db 25
 
 abertura1 db 'Memoria Jogo', 0
 abertura2 db 'Jogo Da Memoria', 0
@@ -292,6 +296,15 @@ guia_fun:
 		int 10h
 
 		mov ah, 0
+
+
+
+
+
+
+
+
+
 		int 16h
 		cmp al, 13
 
@@ -307,7 +320,7 @@ cards:
 	mov al,'0'
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -318,7 +331,7 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -329,7 +342,7 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -340,7 +353,7 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -351,7 +364,7 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -362,7 +375,7 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -373,7 +386,7 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -384,7 +397,7 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -395,7 +408,7 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -406,7 +419,7 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -417,7 +430,7 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
 
 	mov ah, 02h
@@ -428,8 +441,35 @@ cards:
 
 	mov ah, 0xe
 	mov bh, 0
-	mov bl, 7
+	mov bl, 15
 	int 10h
+ret
+SetaCard:	
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, ch
+	mov dl, cl
+	int 10h
+
+	mov al,'0'
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 15
+	int 10h
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, byte[setaX]
+	mov dl, byte[setaY]
+	int 10h
+
+	mov al,'0'
+	mov ah, 0xe
+	mov bh, 0
+	mov bl, 1
+	int 10h
+
 ret
 game:
 	mov ah, 0
@@ -439,7 +479,61 @@ game:
     mov bx, 12
     int 10h
     call cards ; cartas viradas
+    mov ch,byte[setaX]
+	mov cl,byte[setaY]
+	call SetaCard
+    jogada:
+    	mov ah, 0
+		int 16h
+		
+		cmp al,'w'
+		je .up
 
+		cmp al,'s'
+		je .down
+
+		cmp al,'a'
+		je .left
+
+		cmp al,'d'
+		je .right
+		
+		.up:
+			mov ch,byte[setaX]
+			mov cl,byte[setaY]
+			cmp byte[setaX],7
+			je jogada
+			sub byte[setaX],5
+			call SetaCard
+    	jmp jogada
+
+    	.down:
+    		mov ch,byte[setaX]
+			mov cl,byte[setaY]
+			cmp byte[setaX],22
+			je jogada
+			add byte[setaX],5
+			call SetaCard
+    	jmp jogada
+    	.left:
+    		mov ch,byte[setaX]
+			mov cl,byte[setaY]
+			cmp byte[setaY],25
+			je jogada
+			sub byte[setaY],12
+			call SetaCard
+    	jmp jogada
+
+    	.right:
+    		mov ch,byte[setaX]
+			mov cl,byte[setaY]
+			cmp byte[setaY],49
+			je jogada
+			add byte[setaY],12
+			call SetaCard
+    	jmp jogada
+
+	endJogada:
 
 ret
 start:
