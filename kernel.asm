@@ -125,7 +125,7 @@ inicio_abertura:
   	call printStr
 
   	mov ah, 0bh
-    mov bx, 9
+    mov bx, 1
     int 10h
 
     mov ah, 02h;setando o cursor
@@ -617,13 +617,12 @@ delayGame:
 	popa
 	ret
 game:
-
-	mov ah, 0
+	
+    mov ah, 0
     mov al, 12h;"limpa" a tela e a transforma em branco
+    mov bh, 0h
     int 10h
-    mov ah, 0bh
-    mov bx, 0
-    int 10h
+
     mov dx,440
     mov cx,490
     mov al,15
