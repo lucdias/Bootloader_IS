@@ -36,8 +36,8 @@ memo4  incbin "memorias/pendrive.bin"
 memo5  incbin "memorias/flop.bin"
 memo6 incbin "memorias/cloud.bin"
 abertura1 db 'Memoria Jogo', 0
-abertura2 db 'Jogo Da Memoria', 0
-abertura3 db 'J  o  a M m  i ', 0
+abertura2 db 'Jogo Da Memoria^2', 0
+abertura3 db 'J  o  a M m  i ^ ', 0
 guia db 'Guia Do Jogo', 13
 iniciar db 'Iniciar Jogo', 13
 
@@ -817,8 +817,6 @@ game:
 			call drawImage ; caso a carta ainda não tenha sido encontrada com seu par, ela é mostrada
 			cmp byte[carta1],0; vê se a primeira carta já foi escolhida
 			je keepGoing
-				cmp byte[hack],1 ; permite deixar carta virada
-				je jogada
 				cmp cx,word[posiCX1] ; compara se a carta selecionada é a mesma. // vê se essa o seletor não saiu da posição
 				jne ok 
 				cmp dx,word[posiCY1]
@@ -850,6 +848,9 @@ game:
 				jmp jogada
 				Nigual: ; não é igual
 					call delayGame
+					mov byte[carta1],0 ; reseta primeira carta
+					cmp byte[hack],1 ; permite deixar carta virada
+					je jogada
 					sub byte[vida],1
 				    mov cx,word[setaX]
 					mov dx,word[setaY]
@@ -864,7 +865,6 @@ game:
 					call drawImage
 					mov word[setaX],cx
 					mov word[setaY],dx
-					mov byte[carta1],0 ; reseta primeira carta
 				jmp jogada
 			keepGoing:
 			push ax
