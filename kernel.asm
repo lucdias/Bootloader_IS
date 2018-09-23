@@ -2,29 +2,39 @@ org 0x7e00
 jmp 0x0000:start
 
 pos1 db 1
-pos2 db 12
-pos3 db 7
+pos2 db 2
+pos3 db 6
 pos4 db 4
 pos5 db 4
 pos6 db 1
-pos7 db 7
-pos8 db 8
+pos7 db 6
+pos8 db 5
 pos9 db 3
 pos10 db 3
-pos11 db 8 
-pos12 db 12
+pos11 db 5 
+pos12 db 2
 ponto db "0"
 vida db "3"
 hack db 0
 cont dw 0
 cont2 dw 0
+cont3 dw 0
+cont4 dw 0
 setaX dw 250
-setaY dw 160
+setaY dw 140
 posiCX1 dw 0
 posiCY1 dw 0
+pdx dw 0
+pdy dw 0
 carta1 db 0
 carta2 db 0
-
+memo0  incbin "memorias/off.bin"
+memo1  incbin "memorias/sd.bin"
+memo2  incbin "memorias/mixe.bin"
+memo3  incbin "memorias/hd.bin"
+memo4  incbin "memorias/pendrive.bin"
+memo5  incbin "memorias/flop.bin"
+memo6 incbin "memorias/cloud.bin"
 abertura1 db 'Memoria Jogo', 0
 abertura2 db 'Jogo Da Memoria', 0
 abertura3 db 'J  o  a M m  i ', 0
@@ -316,49 +326,95 @@ guia_fun:
 	ret
 tabuleiro:
 	mov al,2
-	mov cx,150
-	mov dx,80
+	mov cx,130
+	mov dx,40
 	colunaJ:
 	mov ah, 0Ch
 	mov bh,0
 	int 10h	
 	push cx
-	add cx,100
+	add cx,120
 	int 10h
-	add cx,100
+	add cx,120
 	int 10h
-	add cx,100
+	add cx,120
 	int 10h	
 	pop cx
 	inc dx
-	cmp dx,400	
+	cmp dx,440	
 	jne colunaJ
 	
-	mov cx,150
-	mov dx,80
+	mov cx,130
+	mov dx,40
 	linhaJ:
 	mov ah, 0Ch
 	mov bh,0
 	int 10h	
 	push dx
-	add dx,80
+	add dx,100
 	int 10h
-	add dx,80
+	add dx,100
 	int 10h
-	add dx,80
+	add dx,100
 	int 10h
-	add dx,80
+	add dx,100
 	int 10h	
 	pop dx
 	inc cx
-	cmp cx,450	
+	cmp cx,490	
 	jne linhaJ
 	
 	ret
+drawImage:
+	pusha
+	xor ax, ax
+	mov cx,word[setaX]
+	sub cx,110
+	mov dx,word[setaY]
+	sub dx,20
+	mov word[cont],cx
+	mov word[cont2],dx
+	add word[cont],10
+	sub word[cont2],8
+
+	mov word[cont3],10
+	mov word[cont4],8
+	.loopPixelY:
+		push cx
+		.loopPixel:
+				lodsb       ;al (color) -> next word
+				.forx:
+					push cx
+					.fory:
+						mov ah, 0xC ;write pixel at coordinate
+						int 0x10 ;might "destroy" ax, si and di on some systems
+						inc cx  ;decrease dx by one and set flags
+						cmp cx,word[cont]
+						jne .fory ;repeat for y-length
+						pop cx     ;restore dx
+					dec dx
+					cmp dx,word[cont2]      ;decrease si by one and set flags
+					jne .forx
+		add cx,10
+		add dx,8			
+		add word[cont],10
+		dec word[cont3]
+		jnz .loopPixel
+	pop cx
+	sub dx,8
+	mov word[cont],cx
+	mov word[cont2],dx
+	add word[cont],10
+	sub word[cont2],8
+
+	mov word[cont3],10
+	dec word[cont4]
+	jnz .loopPixelY
+	popa
+	ret
 card: ; coloca na tela uma carta
-	pusha 
 	sub cx,10  ; o valor das posições são definidas antes de chamar dessa função card,
-	sub dx,10	; aqui em cx e dx são as posições são colocadas no centro da posição do quadrado do seletor
+	sub dx,20	; aqui em cx e dx são as posições são colocadas no centro da posição do quadrado do seletor
 	mov word[cont],dx ; contadores dos loops
 	sub word[cont],60
 	mov word[cont2],cx
@@ -380,19 +436,28 @@ card: ; coloca na tela uma carta
 		dec cx
 		jmp loop1
 	endLoop1:	
-	popa
 	ret
 SetaC: ; coloca na tela o quadrado em cima da carta seleciona
 	push dx
 	mov word[cont],dx
-	sub word[cont],80
+	sub word[cont],100
 	coluna:         ; colunas do seletor
 	mov ah, 0Ch
 	mov bh,0
 	int 10h	
 	push cx
-	sub cx,100
+	inc cx
+	int 10h
+	inc cx
+	int 10h
+	sub cx,2
+	sub cx,120
 	int 10h	
+	inc cx
+	int 10h
+	inc cx
+	int 10h
+	sub cx,2
 	pop cx
 	dec dx
 	cmp dx,word[cont]	
@@ -400,13 +465,22 @@ SetaC: ; coloca na tela o quadrado em cima da carta seleciona
 	
 	pop dx			; linhas do seletor
 	mov word[cont],cx
-	sub word[cont],100
+	sub word[cont],120
 	linha:
 	mov ah, 0Ch
 	mov bh,0
 	int 10h	
 	push dx
-	sub dx,80
+	inc dx
+	int 10h
+	inc dx
+	int 10h
+	sub dx,2
+	sub dx,100
+	int 10h
+	inc dx
+	int 10h
+	inc dx
 	int 10h	
 	pop dx
 	dec cx
@@ -420,9 +494,10 @@ deck: ; Usado para manipular as cartas, tanto para pegar seu valor quando para a
 	cmp word[setaX],250
 	jne c2
 	c1l1: ;coluna 1 linha 1
-	cmp word[setaY],160
+	cmp word[setaY],140
 	jne c1l2
 	mov al,byte[pos1]
+	mov si,memo1
 	cmp ah,1    ;  comando para deletar valor da carta, assim o programa sabe que ela já foi encontrada com seu par
 	jne end 		
 	mov byte[pos1],0	
@@ -431,31 +506,35 @@ deck: ; Usado para manipular as cartas, tanto para pegar seu valor quando para a
 	cmp word[setaY],240
 	jne c1l3
 	mov al,byte[pos2]
+	mov si,memo2
 	cmp ah,1
 	jne end 
 	mov byte[pos2],0
 	ret
 	c1l3:
-	cmp word[setaY],320
+	cmp word[setaY],340
 	jne c1l4
 	mov al,byte[pos3]
+	mov si,memo6
 	cmp ah,1
 	jne end 
 	mov byte[pos3],0
 	ret
 	c1l4:
 	mov al,byte[pos4]
+	mov si,memo4
 	cmp ah,1
 	jne end 
 	mov byte[pos4],0
 
 	c2: ; coluna 2
-	cmp word[setaX],350
+	cmp word[setaX],370
 	jne c3
 	c2l1: ; coluna 2 linha 1...
-	cmp word[setaY],160
+	cmp word[setaY],140
 	jne c2l2
 	mov al,byte[pos5]
+	mov si,memo4
 	cmp ah,1
 	jne end 
 	mov byte[pos5],0
@@ -464,31 +543,35 @@ deck: ; Usado para manipular as cartas, tanto para pegar seu valor quando para a
 	cmp word[setaY],240
 	jne c2l3
 	mov al,byte[pos6]
+	mov si,memo1
 	cmp ah,1
 	jne end 
 	mov byte[pos6],0
 	ret
 	c2l3:
-	cmp word[setaY],320
+	cmp word[setaY],340
 	jne c2l4
 	mov al,byte[pos7]
+	mov si,memo6
 	cmp ah,1
 	jne end 
 	mov byte[pos7],0
 	ret
 	c2l4:
 	mov al,byte[pos8]
+	mov si,memo5
 	cmp ah,1
 	jne end 
 	mov byte[pos8],0
 	ret
 	c3:
-	cmp word[setaX],450
+	cmp word[setaX],490
 	jne end
 	c3l1:
-	cmp word[setaY],160
+	cmp word[setaY],140
 	jne c3l2
 	mov al,byte[pos9]
+	mov si,memo3
 	cmp ah,1
 	jne end 
 	mov byte[pos9],0
@@ -497,20 +580,23 @@ deck: ; Usado para manipular as cartas, tanto para pegar seu valor quando para a
 	cmp word[setaY],240
 	jne c3l3
 	mov al,byte[pos10]
+	mov si,memo3
 	cmp ah,1
 	jne end 
 	mov byte[pos10],0
 	ret
 	c3l3:
-	cmp word[setaY],320
+	cmp word[setaY],340
 	jne c3l4
 	mov al,byte[pos11]
+	mov si,memo5
 	cmp ah,1
 	jne end 
 	mov byte[pos11],0
 	ret
 	c3l4:
 	mov al,byte[pos12]
+	mov si,memo2
 	cmp ah,1
 	jne end 
 	mov byte[pos12],0
@@ -536,52 +622,67 @@ game:
     mov al, 12h;"limpa" a tela e a transforma em branco
     int 10h
     mov ah, 0bh
-    mov bx, 8
+    mov bx, 0
     int 10h
+    mov dx,440
+    mov cx,490
+    mov al,15
+    loop1a:    ; retangulo / carta
+	push dx
+		loop2a:
+			mov ah,0Ch
+			mov bh,0
+			int 10h	
+			dec dx
+			cmp dx,40
+			jne loop2a
+		pop dx
+		dec cx
+		cmp cx,130
+		jne loop1a
     call tabuleiro ; pinta os quadrados das posições
     mov word[setaX],250
-    
     mesa1:
-    	mov  word[setaY],160
+    	mov  word[setaY],140
     	mesa2:
 		call deck
 		mov dx, word[setaY]
 		mov cx, word[setaX]
-		call card
-		add word[setaY],80
-		cmp word[setaY],480
+		call drawImage
+		add word[setaY],100
+		cmp word[setaY],540
 		jne mesa2
-		add word[setaX],100
-    	cmp word[setaX],550
+		add word[setaX],120
+    	cmp word[setaX],610
 		jne mesa1
 
     call delayGame
-    mov al,2
+    mov si, memo0
     mov word[setaX],250
     mesa3:
-    	mov  word[setaY],160
+    	mov  word[setaY],140
     	mesa4:
 		mov dx, word[setaY]
 		mov cx, word[setaX]
-		call card
-		add word[setaY],80
-		cmp word[setaY],480
+		call drawImage
+		add word[setaY],100
+		cmp word[setaY],540
 		jne mesa4
-		add word[setaX],100
-    	cmp word[setaX],550
+		add word[setaX],120
+    	cmp word[setaX],610
 		jne mesa3
 
 	mov word[setaX],250
-	mov word[setaY],160
+	mov word[setaY],140
 	
    	mov cx,word[setaX] ; posição inicial do seletor
 	mov dx,word[setaY]
-	mov al,0xf
+	mov al,0
 	call SetaC  ; pinta seletor na posição definida
 
 	mov ah, 02h;seta o cursor
     mov bh, 0
-  	mov dh, 27
+  	mov dh, 29
   	mov dl, 13
   	int 10h
   	mov si,pontuacao
@@ -590,18 +691,18 @@ game:
 
   	mov ah, 02h;seta o cursor
     mov bh, 0
-  	mov dh, 27
+  	mov dh, 29
   	mov dl, 50
   	int 10h
   	mov si,vidas 
   	mov bl, 0xf
   	call printStr
-    	
+    
     jogada:
       	
     	mov ah, 02h;setando o cursor
 	    mov bh, 0
-	    mov dh, 27
+	    mov dh, 29
 	    mov dl, 21
 	    int 10h
 	    mov al, byte[ponto] ; mostra pontos
@@ -614,7 +715,7 @@ game:
     	je endLose 
     	mov ah, 02h;setando o cursor
 	    mov bh, 0
-	    mov dh, 27
+	    mov dh, 29
 	    mov dl, 58
 	    int 10h
 	    
@@ -654,25 +755,25 @@ game:
 
 			mov al,2
 			call SetaC ; pinta antiga posição do seletor na cor do tabuleiro
-			sub word[setaX],100
+			sub word[setaX],120
 			mov cx,word[setaX]
 			mov dx,word[setaY]
-			mov al,0xf
+			mov al,0
 			call SetaC ; pinta nova posição do deletor com cor branca
     	jmp jogada
 
     	.right:
     		mov cx,word[setaX]
 			mov dx,word[setaY]
-			cmp word[setaX],450
+			cmp word[setaX],490
 			je jogada
 
 			mov al,2
 			call SetaC
-			add word[setaX],100
+			add word[setaX],120
 			mov cx,word[setaX]
 			mov dx,word[setaY]
-			mov al,0xf
+			mov al,0
 			call SetaC
     	jmp jogada
     	.hack:
@@ -681,30 +782,30 @@ game:
     	.up:
     		mov cx,word[setaX]
 			mov dx,word[setaY]
-			cmp word[setaY],160
+			cmp word[setaY],140
 			je jogada
 			
 			mov al,2
 			call SetaC
-			sub word[setaY],80
+			sub word[setaY],100
 			mov cx,word[setaX]
 			mov dx,word[setaY]
-			mov al,0xf
+			mov al,0
 			call SetaC
     	jmp jogada
 
     	.down:
     		mov cx,word[setaX]
 			mov dx,word[setaY]
-			cmp word[setaY],400
+			cmp word[setaY],440
 			je jogada
 			
 			mov al,2
 			call SetaC
-			add word[setaY],80
+			add word[setaY],100
 			mov cx,word[setaX]
 			mov dx,word[setaY]
-			mov al,0xf
+			mov al,0
 			call SetaC
     	jmp jogada
 		.card: 
@@ -713,7 +814,7 @@ game:
 			call deck
 			cmp al,0 ; se a carta já tiver sido encontrada com seu par essa ação não vale
 			je jogada
-			call card ; caso a carta ainda não tenha sido encontrada com seu par, ela é mostrada
+			call drawImage ; caso a carta ainda não tenha sido encontrada com seu par, ela é mostrada
 			cmp byte[carta1],0; vê se a primeira carta já foi escolhida
 			je keepGoing
 				cmp byte[hack],1 ; permite deixar carta virada
@@ -750,23 +851,29 @@ game:
 				Nigual: ; não é igual
 					call delayGame
 					sub byte[vida],1
-				    mov al,2
 				    mov cx,word[setaX]
 					mov dx,word[setaY]
-					call card
-					mov cx,word[posiCX1]
-					mov dx,word[posiCY1]
+					mov si,memo0
+					call drawImage
+					push bx
+					mov bx,word[posiCX1]
+					mov word[setaX],bx
+					mov bx,word[posiCY1]
+					mov word[setaY],bx
+					mov si,memo0
+					call drawImage
+					mov word[setaX],cx
+					mov word[setaY],dx
 					mov byte[carta1],0 ; reseta primeira carta
-					call card
 				jmp jogada
 			keepGoing:
-			push dx
+			push ax
 			mov byte[carta1],al
-			mov dx,word[setaY]
-			mov word[posiCY1],dx
-			mov dx,word[setaX]
-			mov word[posiCX1],dx
-			pop dx
+			mov ax,word[setaY]
+			mov word[posiCY1],ax
+			mov ax,word[setaX]
+			mov word[posiCX1],ax
+			pop ax
 		jmp jogada		
 	endLose:
 	mov ah, 0
