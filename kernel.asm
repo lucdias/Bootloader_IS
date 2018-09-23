@@ -16,8 +16,8 @@ pos12 db 12
 ponto db "0"
 vida db "3"
 hack db 0
-comp dw 0
-comp2 dw 0
+cont dw 0
+cont2 dw 0
 setaX dw 250
 setaY dw 160
 posiCX1 dw 0
@@ -148,7 +148,7 @@ movimentacao_menu:
 	    mov dl, 15h
 	    int 10h
 
-	    mov cl, 0;usando cl para a posterior comparacao indicando qual parte do codigo ir
+	    mov cl, 0;usando cl para a posterior contaracao indicando qual parte do codigo ir
 	    
 	    jmp print_set
 	right:
@@ -355,38 +355,38 @@ tabuleiro:
 	jne linhaJ
 	
 	ret
-card:
-	pusha
-	sub cx,10
-	sub dx,10
-	mov word[comp],dx
-	sub word[comp],60
-	mov word[comp2],cx
-	sub word[comp2],80
-	loop1:
+card: ; coloca na tela uma carta
+	pusha 
+	sub cx,10  ; o valor das posições são definidas antes de chamar dessa função card,
+	sub dx,10	; aqui em cx e dx são as posições são colocadas no centro da posição do quadrado do seletor
+	mov word[cont],dx ; contadores dos loops
+	sub word[cont],60
+	mov word[cont2],cx
+	sub word[cont2],80
+	loop1:    ; retangulo / carta
 	push dx
 		loop2:
 			mov ah,0Ch
 			mov bh,0
 			int 10h	
-			cmp dx,word[comp]
+			cmp dx,word[cont]
 			je endLoop2
 			dec dx
 			jmp loop2
 		endLoop2:
 		pop dx
-		cmp cx,word[comp2]
+		cmp cx,word[cont2]
 		je endLoop1
 		dec cx
 		jmp loop1
 	endLoop1:	
 	popa
 	ret
-SetaC:	
+SetaC: ; coloca na tela o quadrado em cima da carta seleciona
 	push dx
-	mov word[comp],dx
-	sub word[comp],80
-	coluna:
+	mov word[cont],dx
+	sub word[cont],80
+	coluna:         ; colunas do seletor
 	mov ah, 0Ch
 	mov bh,0
 	int 10h	
@@ -395,12 +395,12 @@ SetaC:
 	int 10h	
 	pop cx
 	dec dx
-	cmp dx,word[comp]	
+	cmp dx,word[cont]	
 	jne coluna
 	
-	pop dx
-	mov word[comp],cx
-	sub word[comp],100
+	pop dx			; linhas do seletor
+	mov word[cont],cx
+	sub word[cont],100
 	linha:
 	mov ah, 0Ch
 	mov bh,0
@@ -410,22 +410,22 @@ SetaC:
 	int 10h	
 	pop dx
 	dec cx
-	cmp cx,word[comp]	
+	cmp cx,word[cont]	
 	jne linha
 
 	ret
-deck:
+deck: ; Usado para manipular as cartas, tanto para pegar seu valor quando para apaga-lo
 	
-	c1: ;coluna 1
+	c1: ;coluna 1  // contara as colunas primeiro, dai se achar a coluna ele parte para as linhas
 	cmp word[setaX],250
 	jne c2
 	c1l1: ;coluna 1 linha 1
 	cmp word[setaY],160
 	jne c1l2
 	mov al,byte[pos1]
-	cmp ah,1
-	jne end 
-	mov byte[pos1],0
+	cmp ah,1    ;  comando para deletar valor da carta, assim o programa sabe que ela já foi encontrada com seu par
+	jne end 		
+	mov byte[pos1],0	
 	ret
 	c1l2:
 	cmp word[setaY],240
@@ -449,10 +449,10 @@ deck:
 	jne end 
 	mov byte[pos4],0
 
-	c2:
+	c2: ; coluna 2
 	cmp word[setaX],350
 	jne c3
-	c2l1:
+	c2l1: ; coluna 2 linha 1...
 	cmp word[setaY],160
 	jne c2l2
 	mov al,byte[pos5]
@@ -516,7 +516,20 @@ deck:
 	mov byte[pos12],0
 	end:
 	ret
-
+delayGame:
+	pusha
+	mov dx,1000
+	mov cx,1000
+	loopDel:
+		loopDel1:
+		dec cx
+		cmp cx,0
+		jne loopDel1
+	dec dx
+	cmp dx,0
+	jne loopDel
+	popa
+	ret
 game:
 
 	mov ah, 0
@@ -525,50 +538,46 @@ game:
     mov ah, 0bh
     mov bx, 8
     int 10h
+    call tabuleiro ; pinta os quadrados das posições
+    mov word[setaX],250
+    
+    mesa1:
+    	mov  word[setaY],160
+    	mesa2:
+		call deck
+		mov dx, word[setaY]
+		mov cx, word[setaX]
+		call card
+		add word[setaY],80
+		cmp word[setaY],480
+		jne mesa2
+		add word[setaX],100
+    	cmp word[setaX],550
+		jne mesa1
 
-    mov al,0xf
-    call tabuleiro
-    mov cx,250
-	mov dx,160
-	call card
-	mov cx,350
-	mov dx,160
-	call card
-	mov cx,450
-	mov dx,160
-	call card
-	mov cx,250
-	mov dx,240
-	call card
-	mov cx,350
-	mov dx,240
-	call card
-	mov cx,450
-	mov dx,240
-	call card
-	mov cx,250
-	mov dx,320
-	call card
-	mov cx,350
-	mov dx,320
-	call card
-	mov cx,450
-	mov dx,320
-	call card
-	mov cx,250
-	mov dx,400
-	call card
-	mov cx,350
-	mov dx,400
-	call card
-	mov cx,450
-	mov dx,400
-	call card
+    call delayGame
+    mov al,2
+    mov word[setaX],250
+    mesa3:
+    	mov  word[setaY],160
+    	mesa4:
+		mov dx, word[setaY]
+		mov cx, word[setaX]
+		call card
+		add word[setaY],80
+		cmp word[setaY],480
+		jne mesa4
+		add word[setaX],100
+    	cmp word[setaX],550
+		jne mesa3
+
+	mov word[setaX],250
+	mov word[setaY],160
 	
-   	mov cx,word[setaX]
+   	mov cx,word[setaX] ; posição inicial do seletor
 	mov dx,word[setaY]
 	mov al,0xf
-	call SetaC
+	call SetaC  ; pinta seletor na posição definida
 
 	mov ah, 02h;seta o cursor
     mov bh, 0
@@ -595,13 +604,13 @@ game:
 	    mov dh, 27
 	    mov dl, 21
 	    int 10h
-	    mov al, byte[ponto]
+	    mov al, byte[ponto] ; mostra pontos
 	    mov ah, 0xe
 	    mov bl,0xf
 	    int 10h
-	    cmp byte[ponto],"6"
+	    cmp byte[ponto],"6" ; se pontos igual a 6, win!
     	je endWin
-    	cmp byte[vida],"0"
+    	cmp byte[vida],"0" ; se vidas igual a 9, fim de jogo
     	je endLose 
     	mov ah, 02h;setando o cursor
 	    mov bh, 0
@@ -609,12 +618,12 @@ game:
 	    mov dl, 58
 	    int 10h
 	    
-	    mov al, byte[vida]
+	    mov al, byte[vida] ;motra vidas
 	    mov ah, 0xe
 	    mov bl,0xf
 	    int 10h
 
-    	mov ah, 0
+    	mov ah, 0 ; pega entrada
 		int 16h
 
 		cmp al,13
@@ -640,16 +649,16 @@ game:
 		.left:
 			mov cx,word[setaX]
 			mov dx,word[setaY]
-			cmp word[setaX],250
+			cmp word[setaX],250 ; verifica se está em um extremo
 			je jogada
 
 			mov al,2
-			call SetaC
+			call SetaC ; pinta antiga posição do seletor na cor do tabuleiro
 			sub word[setaX],100
 			mov cx,word[setaX]
 			mov dx,word[setaY]
 			mov al,0xf
-			call SetaC
+			call SetaC ; pinta nova posição do deletor com cor branca
     	jmp jogada
 
     	.right:
@@ -698,47 +707,48 @@ game:
 			mov al,0xf
 			call SetaC
     	jmp jogada
-		.card:
+		.card: 
 			mov cx,word[setaX]
 			mov dx,word[setaY]
 			call deck
-			cmp al,0
+			cmp al,0 ; se a carta já tiver sido encontrada com seu par essa ação não vale
 			je jogada
-			call card
-			cmp byte[carta1],0
+			call card ; caso a carta ainda não tenha sido encontrada com seu par, ela é mostrada
+			cmp byte[carta1],0; vê se a primeira carta já foi escolhida
 			je keepGoing
-				cmp byte[hack],1
+				cmp byte[hack],1 ; permite deixar carta virada
 				je jogada
-				cmp cx,word[posiCX1]
+				cmp cx,word[posiCX1] ; compara se a carta selecionada é a mesma. // vê se essa o seletor não saiu da posição
 				jne ok 
 				cmp dx,word[posiCY1]
 				je jogada 
 				ok:
-				cmp byte[carta1],al	
+				cmp byte[carta1],al	; compara primeira carta escolhida com atual
 					jne Nigual
-					mov ah,1
-					call deck
-					mov cx,word[setaX]
-					mov dx,word[setaY]
+					mov ah,1  ; muda comando para apagar valor da posição, assim não permitindo mais ações com ela
+					call deck ; apaga valor da posição
+					mov cx,word[setaX] ; salva valores atuais, pois o cursor vai precisar ir para a atinga posição para o deck encontrar a antiga carta
+					mov dx,word[setaY] ; e assim apagar o valor dela.
 					push cx
 					push dx
 					push bx
-					mov bx,word[posiCX1]
+					mov bx,word[posiCX1] 
 					mov word[setaX],bx
 					mov bx,word[posiCY1]
 					mov word[setaY],bx
 					pop bx
 					mov ah,1
-					call deck
+					call deck  ; apaga valor da primeira carta
 					mov ah,0
 					pop dx
 					pop cx
 					add byte[ponto],1
-					mov word[setaX],cx
+					mov word[setaX],cx ; volta valores para a posição atual
 					mov word[setaY],dx
 					mov byte[carta1],0
 				jmp jogada
-				Nigual:
+				Nigual: ; não é igual
+					call delayGame
 					sub byte[vida],1
 				    mov al,2
 				    mov cx,word[setaX]
@@ -746,7 +756,7 @@ game:
 					call card
 					mov cx,word[posiCX1]
 					mov dx,word[posiCY1]
-					mov byte[carta1],0
+					mov byte[carta1],0 ; reseta primeira carta
 					call card
 				jmp jogada
 			keepGoing:
