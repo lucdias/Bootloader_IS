@@ -46,12 +46,13 @@ pontuacao db 'Pontos:',13
 vidas db 'Vidas:',13
 perdeu db 'You Lose!',13
 ganhou db 'You Win!',13
-explicacao db 'Esse jogo consiste em acertar todos os pares', 13
-explicacao2 db ' de cartas iguais utilizando a sua memoria', 13
-explicacao3 db ' para isso.', 13
-explicacao4 db 'Para escolher uma carta basta clicar em um numero de 1-9', 13
-explicacao5 db ' essa ira virar ate que outra seja selecionada.', 13
-explicacao6 db 'Voce tem 3 vidas. Boa sorte.', 13
+explicacao db  ' Esse jogo consiste em acertar todos os pares', 13
+explicacao2 db 'de cartas iguais utilizando a sua memoria', 13
+explicacao3 db 'para isso.', 13
+explicacao4 db ' Para escolher uma carta basta clicar nos direcionais',13
+explicacao5 db 'a(Esquerda),d(Direita),s(baixo),w(cima), e ENTER(selecionar)', 13
+explicacao6 db 'essa ira virar ate que outra seja selecionada.', 13
+explicacao7 db ' Voce tem 3 vidas. Boa sorte.', 13
 sala1 db 'Mais uma ?',13
 sala2 db 'Sim',13
 sala3 db 'Nao',13
@@ -382,7 +383,7 @@ guia_fun:
 	int 10h
 
 	mov si, explicacao4
-	mov bl, 0xc
+	mov bl, 0xf
 	call printStr
 
 	mov ah, 02h
@@ -392,16 +393,27 @@ guia_fun:
 	int 10h
 
 	mov si, explicacao5
+	mov bl,0xf
 	call printStr
 	
 	mov ah, 02h
 	mov bh, 0
-	mov dh, 15
+	mov dh, 13
 	mov dl, 10h
 	int 10h
 
 	mov si, explicacao6
-	mov bl, 0x3
+	mov bl, 0xf
+	call printStr
+
+	mov ah, 02h
+	mov bh, 0
+	mov dh, 18
+	mov dl, 10h
+	int 10h
+
+	mov si, explicacao7
+	mov bl, 0x2
 	call printStr
 
 	mov ah, 02h
