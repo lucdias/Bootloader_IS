@@ -36,9 +36,13 @@ memo3  incbin "memorias/hd.bin"
 memo4  incbin "memorias/pendrive.bin"
 memo5  incbin "memorias/flop.bin"
 memo6 incbin "memorias/cloud.bin"
+cin1 incbin "memorias/cin1.bin"
+cin2 incbin "memorias/cin2.bin"
+cin3 incbin "memorias/cin3.bin"
+cin4 incbin "memorias/cin4.bin"
 abertura1 db 'Memoria Jogo', 0
 abertura2 db 'Jogo Da Memoria^2', 0
-abertura3 db 'J  o  a M m  i ^ ', 0
+;abertura3 db 'J  o  a M m  i ^ ', 0
 guia db 'Guia Do Jogo', 13
 iniciar db 'Iniciar Jogo', 13
 movimentos dw 0
@@ -56,6 +60,38 @@ explicacao7 db ' Voce tem 3 vidas. Boa sorte.', 13
 sala1 db 'Mais uma ?',13
 sala2 db 'Sim',13
 sala3 db 'Nao',13
+cin:	
+	mov ah, 0
+    mov al, 12h;"limpa" a tela e a transforma em branco
+    int 10h
+    mov ah, 0bh;colore o background com azul
+    mov bx, 0
+    mov bh,0
+    int 10h
+    mov si,cin1
+    mov word[setaX],310
+    mov word[setaY],240
+    call drawImage
+    mov si,cin2
+    mov word[setaX],410
+    mov word[setaY],240
+    call drawImage
+    mov si,cin3
+    mov word[setaX],310
+    mov word[setaY],300
+    call drawImage
+    mov si,cin4
+    mov word[setaX],410
+    mov word[setaY],300
+    call drawImage
+    call delayGame
+    call delayGame
+    call delayGame
+    call delayGame
+    call delayGame
+    call delayGame
+
+ret
 putchar:
 	mov ah, 0x0e ;
 	int 10h ; interrupção de vídeo
@@ -141,9 +177,9 @@ inicio_abertura:
 	call cursorTitulo
     mov si, abertura1
     call printTitulo
-    call cursorTitulo
-    mov si, abertura3
-    call printTitulo
+    ;call cursorTitulo
+    ;mov si, abertura3
+    ;call printTitulo
     call cursorTitulo
     mov si, abertura2
     call printTitulo
@@ -272,7 +308,7 @@ movimentacao_menu:
 	    mov dl, 15h
 	    int 10h
 
-	    mov cl, 0;usando cl para a posterior contaracao indicando qual parte do codigo ir
+	    mov cl, 0;usando cl para a posterior conparacao indicando qual parte do codigo ir
 	    
 	    jmp print_set
 	right:
@@ -423,7 +459,7 @@ guia_fun:
 	int 10h
 
 	mov si, iniciar
-	mov bl, 0x4
+	mov bl, 6
 	call printStr
 
 		mov ah, 02h
@@ -434,21 +470,15 @@ guia_fun:
 
 		mov al, 'V'
 		mov ah, 0xe
+		mov bl, 8
 		int 10h
 
 		mov ah, 0
 
-
-
-
-
-
-
-
-
 		int 16h
 		cmp al, 13	
 	ret
+	
 tostring:
 	push di
 	.loop1:
@@ -1223,6 +1253,7 @@ start:
     xor ax, ax
     mov ds, ax
     mov es, ax
+   	call cin
    	call inicio_abertura 
     call movimentacao_menu
     cmp cl, 1
