@@ -38,7 +38,7 @@ memo5  incbin "memorias/flop.bin"
 memo6 incbin "memorias/cloud.bin"
 abertura1 db 'Memoria Jogo', 0
 abertura2 db 'Jogo Da Memoria^2', 0
-abertura3 db 'J  o  a M m  i ^ ', 0
+;abertura3 db 'J  o  a M m  i ^ ', 0
 guia db 'Guia Do Jogo', 13
 iniciar db 'Iniciar Jogo', 13
 movimentos dw 0
@@ -141,9 +141,9 @@ inicio_abertura:
 	call cursorTitulo
     mov si, abertura1
     call printTitulo
-    call cursorTitulo
-    mov si, abertura3
-    call printTitulo
+    ;call cursorTitulo
+    ;mov si, abertura3
+    ;call printTitulo
     call cursorTitulo
     mov si, abertura2
     call printTitulo
@@ -272,7 +272,7 @@ movimentacao_menu:
 	    mov dl, 15h
 	    int 10h
 
-	    mov cl, 0;usando cl para a posterior contaracao indicando qual parte do codigo ir
+	    mov cl, 0;usando cl para a posterior conparacao indicando qual parte do codigo ir
 	    
 	    jmp print_set
 	right:
@@ -423,7 +423,7 @@ guia_fun:
 	int 10h
 
 	mov si, iniciar
-	mov bl, 0x4
+	mov bl, 6
 	call printStr
 
 		mov ah, 02h
@@ -434,21 +434,15 @@ guia_fun:
 
 		mov al, 'V'
 		mov ah, 0xe
+		mov bl, 8
 		int 10h
 
 		mov ah, 0
 
-
-
-
-
-
-
-
-
 		int 16h
 		cmp al, 13	
 	ret
+	
 tostring:
 	push di
 	.loop1:
